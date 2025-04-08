@@ -39,7 +39,7 @@ class BaseEnvironment:
         """
         for _ in range(NUM_BIRDS):
             position = [random.uniform(0, self.width), random.uniform(0, self.height)]
-            bird = Bird(x = position[0], y = position[1])
+            bird = Bird(x = position[0], y = position[1], velocity=0.5)
             self.birds.append(bird)
             
     """
@@ -62,3 +62,14 @@ class BaseEnvironment:
             bird.draw(self.screen)
             bird.draw_field_of_view(self.screen)
         pygame.display.flip()
+        
+    def update(self):
+        for bird in self.birds:
+            bird.update()
+            self.boundaries(bird)
+            
+    def boundaries(self, bird):
+        x, y = bird.position
+        bird.position[0] = x % self.width
+        bird.position[1] = y % self.height
+            
