@@ -59,7 +59,7 @@ class BaseEnvironment:
         """
         self.screen.fill((0, 0, 0))
         for bird in self.birds:
-            bird.draw(self.screen)
+            bird.drawSprite(self.screen)
             bird.draw_field_of_view(self.screen)
         pygame.display.flip()
         
