@@ -11,6 +11,11 @@ Module: COMP5400M Bio Inspired Computing
 Date: To Be Added
 """
 
-import pygame
-import math
+# import pygame
+# import math
+# import numpy as np
+# import random
+from Environment.base_env import BaseEnvironment
 
+blank_environment = BaseEnvironment()
+# BlankEnvironment.create_obstacles('Rectangle', length=100, width=100)

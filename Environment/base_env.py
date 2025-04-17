@@ -18,9 +18,11 @@ import random
 
 NUM_BIRDS = 5
 WHITE = (255, 255, 255)
+WIDTH = 1400
+HEIGHT = 1000
 
 class BaseEnvironment:
-    def __init__(self, width, height):
+    def __init__(self, width=WIDTH, height=HEIGHT):
         """
         Initialize the environment with a given width and height.
         The environment is represented as a 2D space where BOIDs can move.
@@ -46,7 +48,7 @@ class BaseEnvironment:
     Generate valid postion function to be created later after testing with blank environment.
     """
     
-    def create_obstacles(self, type, pos, length=0, width=0, radius=0):
+    def create_obstacles(self, type: str, pos = (WIDTH/2, HEIGHT/2), length=0, width=0, radius=0):
         if type == 'Circle':
             pygame.draw.circle(self.screen, WHITE, pos, radius)
         elif type == 'Rectangle':
