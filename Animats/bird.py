@@ -28,6 +28,11 @@ class Bird(FlockingRules):
         self.angular_velocity = 0.0
         self.angular_accel_sigma = 0.1
         self.angular_damping = 0.3 # Keep this between 0.0 - 1.0
+        # Initialising and resizing bird sprite
+        img = pygame.image.load("Animats/BirdSpriteFrames/frame-1.png").convert_alpha()
+        resize_factor = 20
+        target_size = (img.get_width() // resize_factor, img.get_height() // resize_factor)
+        self.sprite = pygame.transform.smoothscale(img, target_size)
 
     def apply_force(self, force):
         """Accumulate steering forces."""
@@ -75,6 +80,8 @@ class Bird(FlockingRules):
         self.heading.rotate_ip(self.angular_velocity)
         self.velocity = self.heading * self.speed
         self.position += self.velocity
+        
+        
 
     def draw(self, screen):
         """Draw the bird as a triangle pointing in direction of its velocity."""
@@ -82,10 +89,17 @@ class Bird(FlockingRules):
             angle = 0
         else:
             angle = self.velocity.angle_to(pygame.Vector2(1, 0))
-        head  = self.position + pygame.Vector2(10, 0).rotate(-angle)
-        left  = self.position + pygame.Vector2(-5, 5).rotate(-angle)
-        right = self.position + pygame.Vector2(-5, -5).rotate(-angle)
+        s = 0.5
+        head  = self.position + pygame.Vector2(10, 0).rotate(-angle) * s
+        left  = self.position + pygame.Vector2(-5, 5).rotate(-angle) * s
+        right = self.position + pygame.Vector2(-5, -5).rotate(-angle) * s
         pygame.draw.polygon(screen, (255, 255, 255), [head, left, right])
+        
+    def drawSprite(self, screen):
+        angle = -self.velocity.angle_to(pygame.Vector2(1, 0))
+        rotated = pygame.transform.rotate(self.sprite, angle)
+        rect = rotated.get_rect(center=self.position)
+        screen.blit(rotated, rect)
 
     def draw_field_of_view(self, screen):
         """Optionally visualize the bird's field of view."""
