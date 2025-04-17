@@ -16,7 +16,7 @@ import numpy as np
 from Animats.bird import Bird
 import random
 
-NUM_BIRDS = 5
+NUM_BIRDS = 15
 WHITE = (255, 255, 255)
 
 class BaseEnvironment:
@@ -39,7 +39,7 @@ class BaseEnvironment:
         """
         for _ in range(NUM_BIRDS):
             position = [random.uniform(0, self.width), random.uniform(0, self.height)]
-            bird = Bird(x = position[0], y = position[1], velocity=0.5, use_avoidance=False, use_alignment=False, use_cohesion=False)
+            bird = Bird(x = position[0], y = position[1], velocity=0.5, use_avoidance=True, use_alignment=True, use_cohesion=True)
             self.birds.append(bird)
             
     """
@@ -63,9 +63,20 @@ class BaseEnvironment:
             bird.draw_field_of_view(self.screen)
         pygame.display.flip()
         
+    # def update(self):
+    #     for bird in self.birds:
+    #         bird.randomWalkUpdate()
+    #         self.boundaries(bird)
+
     def update(self):
         for bird in self.birds:
-            bird.randomWalkUpdate()
+            nbrs = [other for other in self.birds
+                    if other is not bird
+                    and bird.position.distance_to(other.position) < bird.field_of_view
+                    and bird.is_in_field_of_view(other.position)]
+
+            bird.flock(nbrs)
+            bird.update()
             self.boundaries(bird)
             
     def boundaries(self, bird):
