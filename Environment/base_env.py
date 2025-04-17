@@ -39,7 +39,7 @@ class BaseEnvironment:
         """
         for _ in range(NUM_BIRDS):
             position = [random.uniform(0, self.width), random.uniform(0, self.height)]
-            bird = Bird(x = position[0], y = position[1], velocity=0.5)
+            bird = Bird(x = position[0], y = position[1], velocity=0.5, use_avoidance=False, use_alignment=False, use_cohesion=False)
             self.birds.append(bird)
             
     """
@@ -65,7 +65,7 @@ class BaseEnvironment:
         
     def update(self):
         for bird in self.birds:
-            bird.update()
+            bird.randomWalkUpdate()
             self.boundaries(bird)
             
     def boundaries(self, bird):

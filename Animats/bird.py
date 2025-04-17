@@ -13,7 +13,7 @@ class Bird(FlockingRules):
         self.field_of_view = field_of_view
         self.fov_angle = fov_angle
         # Movement constraints
-        self.max_speed = 4
+        self.max_speed = 0.5
         self.max_force = 0.1
         # Rule toggles and strengths
         self.use_avoidance = use_avoidance
@@ -22,6 +22,12 @@ class Bird(FlockingRules):
         self.avoidance_strength = avoidance_strength
         self.alignment_strength = alignment_strength
         self.cohesion_strength = cohesion_strength
+        # Smooth movement parameters
+        self.speed = self.max_speed
+        self.heading = self.velocity.normalize()
+        self.angular_velocity = 0.0
+        self.angular_accel_sigma = 0.1
+        self.angular_damping = 0.3 # Keep this between 0.0 - 1.0
 
     def apply_force(self, force):
         """Accumulate steering forces."""
@@ -61,6 +67,14 @@ class Bird(FlockingRules):
         self.position += self.velocity
         # Reset acceleration for next frame
         self.acceleration = pygame.Vector2(0, 0)
+        
+    def randomWalkUpdate(self):
+        accel = random.gauss(0, self.angular_accel_sigma)
+        self.angular_velocity += accel
+        self.angular_velocity *= (1.0 - self.angular_damping)
+        self.heading.rotate_ip(self.angular_velocity)
+        self.velocity = self.heading * self.speed
+        self.position += self.velocity
 
     def draw(self, screen):
         """Draw the bird as a triangle pointing in direction of its velocity."""
