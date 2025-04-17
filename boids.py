@@ -3,7 +3,7 @@ from Environment.base_env import BaseEnvironment
 
 pygame.init()
 
-env = BaseEnvironment(1000, 800)
+env = BaseEnvironment(1400, 1000)
 env.populate_environment()
 env.render()
 
