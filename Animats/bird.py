@@ -1,73 +1,99 @@
-import pygame
-import math
-import random
+import pygame, random
+from Rules.rules import FlockingRules
 
-class Bird:
-    def __init__(self, x, y, velocity=(0, 0), field_of_view=100, fov_angle=120):
-        # Initialize position and velocity as pygame vectors for easy math operations
+class Bird(FlockingRules):
+    def __init__(self, x, y, velocity=(0, 0), field_of_view=100, fov_angle=120,
+                 use_avoidance=True, use_alignment=True, use_cohesion=True,
+                 avoidance_strength=1.5, alignment_strength=1.0, cohesion_strength=1.0):
+        # Position and velocity vectors
         self.position = pygame.Vector2(x, y)
         self.velocity = pygame.Vector2(velocity)
-        # Field of view parameters
-        self.field_of_view = field_of_view  # Maximum distance at which the bird can 'see'
-        self.fov_angle = fov_angle          # Total angle (in degrees) of the field of view
-        # Optional limits for movement, which you may adjust or use in your main boids rules
+        self.acceleration = pygame.Vector2(0, 0)
+        # Vision parameters
+        self.field_of_view = field_of_view
+        self.fov_angle = fov_angle
+        # Movement constraints
         self.max_speed = 4
         self.max_force = 0.1
+        # Rule toggles and strengths
+        self.use_avoidance = use_avoidance
+        self.use_alignment = use_alignment
+        self.use_cohesion = use_cohesion
+        self.avoidance_strength = avoidance_strength
+        self.alignment_strength = alignment_strength
+        self.cohesion_strength = cohesion_strength
+
+    def apply_force(self, force):
+        """Accumulate steering forces."""
+        self.acceleration += force
+
+    def flock(self, neighbors):
+        """
+        Compute and apply separation (avoidance), alignment, and cohesion
+        based on nearby neighbors.
+        """
+        if self.use_avoidance:
+            steer = self.avoidance(neighbors, self.avoidance_strength)
+            self.apply_force(steer)
+        if self.use_alignment:
+            steer = self.alignment(neighbors, self.alignment_strength)
+            self.apply_force(steer)
+        if self.use_cohesion:
+            steer = self.cohesion(neighbors, self.cohesion_strength)
+            self.apply_force(steer)
 
     def update(self):
-        """Update the bird's position based on its velocity and ensure it doesn't exceed max_speed."""
-        if random.random() < 0.05:  # 5% chance each frame
+        """
+        Update velocity and position, limit speed, and reset acceleration.
+        Includes a small random perturbation for exploration.
+        """
+        # Random heading perturbation (optional)
+        if random.random() < 0.05:
             angle = random.uniform(-30, 30)
             self.velocity = self.velocity.rotate(angle)
-            #self.velocity.scale_to_length(self.max_speed)  # ensure consistent speed
 
-        self.position += self.velocity
+        # Integrate acceleration
+        self.velocity += self.acceleration
+        # Limit speed
         if self.velocity.length() > self.max_speed:
             self.velocity.scale_to_length(self.max_speed)
+        # Update position
+        self.position += self.velocity
+        # Reset acceleration for next frame
+        self.acceleration = pygame.Vector2(0, 0)
 
     def draw(self, screen):
-        """Draw the bird as a triangle pointing in the direction of its velocity."""
+        """Draw the bird as a triangle pointing in direction of its velocity."""
         if self.velocity.length() == 0:
-            # Prevent division by zero; if velocity is zero, default the angle to 0.
             angle = 0
         else:
             angle = self.velocity.angle_to(pygame.Vector2(1, 0))
-        # Define triangle points relative to the bird's position
-        head = self.position + pygame.Vector2(10, 0).rotate(-angle)
-        left = self.position + pygame.Vector2(-5, 5).rotate(-angle)
+        head  = self.position + pygame.Vector2(10, 0).rotate(-angle)
+        left  = self.position + pygame.Vector2(-5, 5).rotate(-angle)
         right = self.position + pygame.Vector2(-5, -5).rotate(-angle)
         pygame.draw.polygon(screen, (255, 255, 255), [head, left, right])
 
     def draw_field_of_view(self, screen):
-        """Optionally draw the bird's field of vision as a circle with two boundary lines."""
-        # Draw the outer circle representing the range of vision
-        pygame.draw.circle(screen, (0, 255, 0), (int(self.position.x), int(self.position.y)), self.field_of_view, 1)
-        # Calculate the bird's current heading; default to right if velocity is zero
-        if self.velocity.length() == 0:
-            heading_angle = 0
-        else:
-            heading_angle = self.velocity.angle_to(pygame.Vector2(1, 0))
-        half_angle = self.fov_angle / 2
-        # Determine the end points for the boundary lines of the field of view
-        left_boundary = self.position + pygame.Vector2(self.field_of_view, 0).rotate(-heading_angle - half_angle)
-        right_boundary = self.position + pygame.Vector2(self.field_of_view, 0).rotate(-heading_angle + half_angle)
-        pygame.draw.line(screen, (0, 255, 0), self.position, left_boundary, 1)
-        pygame.draw.line(screen, (0, 255, 0), self.position, right_boundary, 1)
+        """Optionally visualize the bird's field of view."""
+        pygame.draw.circle(screen, (0, 255, 0),
+                           (int(self.position.x), int(self.position.y)),
+                           self.field_of_view, 1)
+        heading = (self.velocity.angle_to(pygame.Vector2(1, 0))
+                   if self.velocity.length() else 0)
+        half = self.fov_angle / 2
+        left_b  = self.position + pygame.Vector2(self.field_of_view, 0).rotate(-heading - half)
+        right_b = self.position + pygame.Vector2(self.field_of_view, 0).rotate(-heading + half)
+        pygame.draw.line(screen, (0, 255, 0), self.position, left_b, 1)
+        pygame.draw.line(screen, (0, 255, 0), self.position, right_b, 1)
 
-    def is_in_field_of_view(self, other_position):
+    def is_in_field_of_view(self, other_pos):
         """
-        Check if a given position (another bird or object) falls within this bird's field of vision.
-        Returns True if within the field of view (both angle and distance); False otherwise.
+        Check if a given position is within this bird's field of vision.
         """
-        to_other = other_position - self.position
-        distance = to_other.length()
-        if distance > self.field_of_view:
+        to_other = other_pos - self.position
+        dist = to_other.length()
+        if dist > self.field_of_view:
             return False
-        # Normalize the direction vector; default to (1,0) if velocity is zero.
-        if self.velocity.length() == 0:
-            direction = pygame.Vector2(1, 0)
-        else:
-            direction = self.velocity.normalize()
-        # Determine the angle between the bird's heading and the direction to the other object
-        angle = direction.angle_to(to_other)
-        return abs(angle) < self.fov_angle / 2
+        direction = (self.velocity.normalize()
+                     if self.velocity.length() else pygame.Vector2(1, 0))
+        return abs(direction.angle_to(to_other)) < self.fov_angle / 2
