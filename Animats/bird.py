@@ -82,9 +82,10 @@ class Bird(FlockingRules):
             angle = 0
         else:
             angle = self.velocity.angle_to(pygame.Vector2(1, 0))
-        head  = self.position + pygame.Vector2(10, 0).rotate(-angle)
-        left  = self.position + pygame.Vector2(-5, 5).rotate(-angle)
-        right = self.position + pygame.Vector2(-5, -5).rotate(-angle)
+        s = 0.5
+        head  = self.position + pygame.Vector2(10, 0).rotate(-angle) * s
+        left  = self.position + pygame.Vector2(-5, 5).rotate(-angle) * s
+        right = self.position + pygame.Vector2(-5, -5).rotate(-angle) * s
         pygame.draw.polygon(screen, (255, 255, 255), [head, left, right])
 
     def draw_field_of_view(self, screen):
