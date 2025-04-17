@@ -1,5 +1,6 @@
 import pygame
 import math
+import random
 
 class Bird:
     def __init__(self, x, y, velocity=(0, 0), field_of_view=100, fov_angle=120):
@@ -15,6 +16,11 @@ class Bird:
 
     def update(self):
         """Update the bird's position based on its velocity and ensure it doesn't exceed max_speed."""
+        if random.random() < 0.05:  # 5% chance each frame
+            angle = random.uniform(-30, 30)
+            self.velocity = self.velocity.rotate(angle)
+            #self.velocity.scale_to_length(self.max_speed)  # ensure consistent speed
+
         self.position += self.velocity
         if self.velocity.length() > self.max_speed:
             self.velocity.scale_to_length(self.max_speed)
