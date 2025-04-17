@@ -29,7 +29,7 @@ class Bird(FlockingRules):
         self.angular_accel_sigma = 0.1
         self.angular_damping = 0.3 # Keep this between 0.0 - 1.0
         # Initialising and resizing bird sprite
-        img = pygame.image.load("Animats/BirdSpriteFrames/frame-1.png").convert_alpha()
+        img = pygame.image.load("BOIDS/Animats/BirdSpriteFrames/frame-1.png").convert_alpha()
         resize_factor = 20
         target_size = (img.get_width() // resize_factor, img.get_height() // resize_factor)
         self.sprite = pygame.transform.smoothscale(img, target_size)
